@@ -2,8 +2,9 @@ import praw
 import upvoteConfig
 import os
 import time
+from random import randint
 
-users = ["yoyashing", "NGNLBot"]
+users = ["yoyashing", "NGNLBot", "notanupvotebot001", "notanupvotebot002", "notanupvotebot003", "notanupvotebot004", "notanupvotebot005"]
 
 def bot_login():
     print("Logging in...")
@@ -54,10 +55,37 @@ def get_saved_comments():
             comments_upvoted = list(filter(None, comments_upvoted))
     return comments_upvoted
 
+def bot_comment(reddits, pos):
+    commentOptions = ["OMG!! XD XD", "LMAOOO I'M DYING!! XD XD", "THIS IS GREAT!! XD", "This is my favorite!", "HAHAHAAHAHA", "LMAOOOO", "LOL", "That's crazy!", "totally agree", "That's amazing!", "OMG", "ummmmmmmm"]
+    if pos >= len(reddits):
+        pos = 0;
+    for comment in reddits[pos].subreddit('test').comments(limit=1):
+        while True:
+            try:
+                comment.reply(commentOptions(randint(0, len(commentOptions))))
+                print(upvoteConfig.username[pos] + " replied to comment " + comment.id)
+                pos += 1
+                return True;
+            except:
+                print(upvoteConfig.username[pos] + " failed to reply.")
+                pos += 1
+                return False;
+
 reddits = bot_login()
 comments_upvoted = get_saved_comments()
 
+count = 0;
+pos = 0;
+upvoteTimeInterval = 60
+commentTimeInterval = 600
+
 while True:
+    if count*upvoteTimeInterval % commentTimeInterval == 0:
+        if bot_comment(reddits, pos):
+            commentTimeInterval -= 30
+        else:
+            commentTimeInterval += 120
     run_bot(reddits, comments_upvoted)
-    print("......Sleeping for 5 seconds......\n")
-    time.sleep(5)
+    count += 1;
+    print("......Sleeping for " + str(upvoteTimeInterval) + " seconds......\n")
+    time.sleep(upvoteTimeInterval)
