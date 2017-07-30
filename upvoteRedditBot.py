@@ -43,7 +43,7 @@ def run_bot(reddits, comments_replied_to):
         with open("comments_upvoted.txt", "a") as f:
             for comment in newComments:
                 f.write(comment + "\n")
-        print("Upvoted " + str(upvoted) + " new comments by " + user + "\n")
+        print("Upvoted " + str(int(upvoted/len(reddits))) + " new comments by " + user + "\n")
 
 def get_saved_comments():
     if not os.path.isfile("comments_upvoted.txt"):
@@ -62,29 +62,31 @@ def bot_comment(reddits, pos):
     for comment in reddits[pos].subreddit('test').comments(limit=1):
         while True:
             try:
-                comment.reply(commentOptions(randint(0, len(commentOptions))))
-                print(upvoteConfig.username[pos] + " replied to comment " + comment.id)
-                pos += 1
+                comment.reply(commentOptions[randint(0, len(commentOptions))])
+                print("* * * " + upvoteConfig.username[pos] + " replied to comment " + comment.id)
                 return True;
             except:
-                print(upvoteConfig.username[pos] + " failed to reply.")
-                pos += 1
+                print("* * * " + upvoteConfig.username[pos] + " failed to reply.")
                 return False;
 
 reddits = bot_login()
 comments_upvoted = get_saved_comments()
 
 count = 0;
-pos = 0;
 upvoteTimeInterval = 60
-commentTimeInterval = 600
+commentTimeIntervals = []
+for reddit in reddits:
+    commentTimeIntervals.append(600)
 
 while True:
-    if count*upvoteTimeInterval % commentTimeInterval == 0:
-        if bot_comment(reddits, pos):
-            commentTimeInterval -= 30
-        else:
-            commentTimeInterval += 120
+    for i in range(len(commentTimeIntervals)):
+        if count*upvoteTimeInterval % commentTimeIntervals[i] == 0:
+            if bot_comment(reddits, i):
+                commentTimeIntervals[i] -= 60
+                print("---New comment time interval for " + upvoteConfig.username[i] + " is " + str(commentTimeIntervals[i]))
+            else:
+                commentTimeIntervals[i] *= 2
+                print("---New comment time interval for " + upvoteConfig.username[i] + " is " + str(commentTimeIntervals[i]))
     run_bot(reddits, comments_upvoted)
     count += 1;
     print("......Sleeping for " + str(upvoteTimeInterval) + " seconds......\n")
